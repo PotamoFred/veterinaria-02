@@ -1,0 +1,233 @@
+import Image from "next/image";
+import CanvasSequence from "@/components/CanvasSequence";
+import BentoGrid from "@/components/BentoGrid";
+
+export default function Home() {
+  return (
+    <>
+    <main className="bg-black text-white font-sans relative h-[400vh]">
+      {/* Cinematic Scroll Animation */}
+      <CanvasSequence />
+
+      {/* Sticky container for original content to stay pinned during scroll */}
+      <div className="sticky top-0 h-[100dvh] w-full flex flex-col z-10 pointer-events-none">
+        {/* Reactivate pointer events for interactive elements */}
+        <div className="pointer-events-auto w-full h-full flex flex-col relative overflow-y-auto overflow-x-hidden">
+          
+          {/* Navbar Container */}
+          <div className="pt-6 px-4 sm:px-8 max-w-7xl mx-auto w-full shrink-0">
+            <nav className="flex items-center justify-between bg-zinc-900/50 backdrop-blur-md border border-white/10 rounded-full px-4 sm:px-6 py-3">
+              {/* Logo */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-indigo-950 border border-indigo-800 rounded-full flex items-center justify-center shrink-0">
+                  {/* Dummy logo SVG (Medical Cross with Animal shape representation) */}
+                  <svg
+                    className="w-5 h-5 text-indigo-300"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="hidden sm:block">
+                  <h1 className="font-bold text-sm tracking-wide leading-tight">
+                    BIENESTAR ANIMAL
+                  </h1>
+                  <p className="text-[10px] text-violet-400 tracking-widest uppercase">
+                    Clínica Veterinaria
+                  </p>
+                </div>
+              </div>
+
+              {/* Nav Links */}
+              <div className="hidden lg:flex items-center gap-8 text-sm font-medium">
+                <a href="#" className="bg-violet-500 text-white px-5 py-2 rounded-full">
+                  Inicio
+                </a>
+                <a href="#" className="hover:text-violet-400 transition-colors">
+                  Servicios
+                </a>
+                <a href="#" className="hover:text-violet-400 transition-colors">
+                  Nosotros
+                </a>
+                <a href="#" className="hover:text-violet-400 transition-colors">
+                  Contacto
+                </a>
+              </div>
+
+              {/* CTA Button */}
+              <button className="hidden md:flex items-center gap-2 border border-white/30 hover:bg-white/10 transition-colors px-5 py-2 rounded-full text-sm font-medium">
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                Agendar cita
+              </button>
+
+              {/* Mobile Menu Button */}
+              <button className="lg:hidden text-white p-2">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              </button>
+            </nav>
+          </div>
+
+          {/* Hero Content */}
+          <div className="max-w-7xl mx-auto px-6 sm:px-12 pt-20 sm:pt-32 pb-32 flex flex-col justify-center grow w-full">
+            <div className="max-w-2xl">
+              {/* Eyebrow */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-8 sm:w-12 h-[2px] bg-violet-500"></div>
+                <p className="text-xs sm:text-sm font-semibold tracking-[0.2em] text-gray-300 uppercase">
+                  Tu mascota, nuestra prioridad
+                </p>
+              </div>
+
+              {/* Headline */}
+              <h2 className="text-5xl sm:text-7xl font-black leading-none mb-6 tracking-tight">
+                <span className="block text-white mb-2">BIENESTAR</span>
+                <span className="block text-violet-500">ANIMAL</span>
+              </h2>
+
+              {/* Subtitle */}
+              <p className="text-gray-300 text-base sm:text-xl mb-10 leading-relaxed max-w-lg">
+                Brindamos cuidado y salud integral a tus mascotas con un equipo
+                profesional, instalaciones adecuadas y un trato lleno de amor.
+              </p>
+
+              {/* Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-16 sm:mb-24">
+                <button className="flex items-center justify-center gap-3 bg-violet-500 hover:bg-violet-600 text-white px-8 py-4 rounded-full font-semibold transition-colors">
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Agendar cita
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+                <button className="flex items-center justify-center gap-3 border border-white/40 hover:bg-white/10 text-white px-8 py-4 rounded-full font-semibold transition-colors bg-transparent">
+                  Conocer servicios
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Social Icons */}
+              <div className="flex items-center gap-6">
+                {/* Facebook */}
+                <a
+                  href="#"
+                  className="text-white hover:text-violet-400 transition-colors bg-white/10 p-2.5 rounded-full"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
+                  </svg>
+                </a>
+                {/* Instagram */}
+                <a
+                  href="#"
+                  className="text-white hover:text-violet-400 transition-colors bg-white/10 p-2.5 rounded-full"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                  </svg>
+                </a>
+                {/* YouTube */}
+                <a
+                  href="#"
+                  className="text-white hover:text-violet-400 transition-colors bg-white/10 p-2.5 rounded-full"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </main>
+    <BentoGrid />
+    </>
+  );
+}
