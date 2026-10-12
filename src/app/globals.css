@@ -21,6 +21,13 @@
 
 :root {
   --hero-progress: 0;
+  /* Height of the fixed header (alert bar + nav) plus breathing room, so
+     anchor jumps do not land under it. */
+  --header-offset: 7.5rem;
+}
+
+[id] {
+  scroll-margin-top: var(--header-offset);
 }
 
 body {
@@ -33,11 +40,6 @@ body {
   opacity: calc(1 - min(1, max(0, var(--hero-progress) / 0.38)));
   transform: translateY(calc(var(--hero-progress) * -16px));
   will-change: opacity, transform;
-}
-
-.hero-nav {
-  opacity: calc(1 - min(1, max(0, (var(--hero-progress) - 0.06) / 0.42)));
-  will-change: opacity;
 }
 
 .hero-image-scrim {
@@ -61,7 +63,6 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .hero-copy,
-  .hero-nav,
   .hero-image-scrim,
   .hero-nav-vignette {
     opacity: 1;
@@ -84,6 +85,370 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-marquee {
+    animation: none;
+  }
+}
+
+/* ─── Alert bar ticker ─── */
+/* The address is wider than a phone, so on narrow screens it scrolls right to
+   left instead of being cut off mid-word with an ellipsis. The class is only
+   applied after measuring that the text really overflows, otherwise it would
+   drift about for nothing on desktop where it already fits. */
+@keyframes alert-ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.alert-ticker {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent
+  );
+}
+
+/* Always animated, on every width. The track carries enough copies to be wider
+   than its box at any viewport, so the loop never exposes bare background. */
+.alert-ticker__track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: alert-ticker var(--ticker-duration, 20s) linear infinite;
+}
+
+/* Hover or keyboard focus stops it, so the text can actually be read. */
+.alert-ticker:hover .alert-ticker__track,
+.alert-ticker:focus-within .alert-ticker__track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alert-ticker {
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .alert-ticker__track {
+    animation: none;
+    white-space: normal;
+    overflow-wrap: break-word;
+    width: auto;
+  }
+
+  .alert-ticker__track > * {
+    padding-right: 0;
+  }
+}
+
+/* ─── Cover flow 3D (servicios) ──────────────────────────────────────────
+   Ported from _referencia-carrusel/style.css. Sizes, timings, the easing
+   curve and the responsive steps are unchanged; only the colours were swapped
+   from a black page to the clinic palette, and the touch targets on the dashes
+   were raised to 44px. */
+.coverflow {
+  --cf-card-w: 280px;
+  --cf-card-h: 390px;
+  --cf-card-radius: 18px;
+  --cf-ease: cubic-bezier(0.19, 1, 0.22, 1);
+  --cf-dur: 0.65s;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* The reference sets this on the body because it owns the whole page. Here it
+     is scoped: dragging across the cards used to select the title and the hint,
+     and on touch it blocked the page from scrolling under the carousel. */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.coverflow__viewport {
+  position: relative;
+  width: 100%;
+  height: 480px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1100px;
+  perspective-origin: 50% 50%;
+  overflow: visible;
+  /* The reference sets user-select on the body because it owns the whole page;
+     here the rule is scoped to the carousel so the rest of the section keeps
+     working normally. */
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.coverflow__viewport:active {
+  cursor: grabbing;
+}
+
+.coverflow__stage {
+  position: relative;
+  width: var(--cf-card-w);
+  height: var(--cf-card-h);
+  transform-style: preserve-3d;
+}
+
+.coverflow__card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--cf-card-w);
+  height: var(--cf-card-h);
+  border-radius: var(--cf-card-radius);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  will-change: transform, opacity, filter;
+  transition:
+    transform var(--cf-dur) var(--cf-ease),
+    opacity var(--cf-dur) var(--cf-ease),
+    filter var(--cf-dur) var(--cf-ease),
+    box-shadow var(--cf-dur) var(--cf-ease);
+  box-shadow:
+    0 25px 45px -12px rgb(27 0 75 / 0.35),
+    0 0 0 1px rgb(76 0 125 / 0.12);
+  background: #1b004b;
+}
+
+.coverflow__card:hover {
+  box-shadow:
+    0 30px 60px -10px rgb(27 0 75 / 0.45),
+    0 0 0 1px rgb(174 226 209 / 0.6);
+}
+
+.coverflow__card.is-active {
+  box-shadow:
+    0 35px 70px -15px rgb(27 0 75 / 0.5),
+    0 0 0 2px rgb(174 226 209 / 0.7);
+}
+
+.coverflow__hit {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.coverflow__hit:focus-visible {
+  outline: 3px solid #aee2d1;
+  outline-offset: 3px;
+}
+
+.coverflow__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.coverflow__caption {
+  margin-top: 28px;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* key={i} on the title restarts this animation on every slide change, which is
+   how the reference did its 180ms fade swap. */
+.coverflow__title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1b004b;
+  letter-spacing: -0.01em;
+  animation: coverflow-title 0.36s var(--cf-ease);
+}
+
+@keyframes coverflow-title {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.coverflow__nav {
+  margin-top: 26px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.coverflow__arrow {
+  background: none;
+  border: none;
+  color: #4c007d;
+  cursor: pointer;
+  padding: 11px;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition:
+    color 0.25s ease,
+    transform 0.25s ease,
+    background-color 0.25s ease;
+}
+
+.coverflow__arrow:hover:not(:disabled) {
+  color: #1b004b;
+  background-color: rgb(76 0 125 / 0.1);
+  transform: scale(1.12);
+}
+
+.coverflow__arrow:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.coverflow__arrow:focus-visible {
+  outline: 3px solid #aee2d1;
+  outline-offset: 2px;
+}
+
+/* Disabled at the ends, like the reference. Without an outline they read as
+   broken rather than as an edge. */
+.coverflow__arrow:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.coverflow__dashes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* The reference draws a 2.5px bar. Here the bar is a pseudo-element inside a
+   44px button, so it stays tappable without changing the look. */
+.coverflow__dash {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coverflow__dash::after {
+  content: "";
+  display: block;
+  height: 2.5px;
+  width: 18px;
+  background-color: rgb(76 0 125 / 0.28);
+  border-radius: 3px;
+  transition:
+    width 0.45s var(--cf-ease),
+    background-color 0.45s ease,
+    box-shadow 0.45s ease;
+}
+
+.coverflow__dash:hover::after {
+  background-color: rgb(76 0 125 / 0.55);
+}
+
+.coverflow__dash.is-active::after {
+  width: 42px;
+  background-color: #1b004b;
+  box-shadow: 0 0 8px rgb(76 0 125 / 0.45);
+}
+
+.coverflow__dash:focus-visible {
+  outline: 3px solid #aee2d1;
+  outline-offset: -4px;
+  border-radius: 999px;
+}
+
+.coverflow__hint {
+  margin-top: 22px;
+  font-size: 0.8125rem;
+  color: rgb(27 0 75 / 0.5);
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .coverflow {
+    --cf-card-w: 240px;
+    --cf-card-h: 340px;
+  }
+
+  .coverflow__viewport {
+    height: 420px;
+  }
+
+  .coverflow__title {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .coverflow {
+    --cf-card-w: 200px;
+    --cf-card-h: 290px;
+  }
+
+  .coverflow__viewport {
+    height: 370px;
+    perspective: 800px;
+  }
+
+  /* 44px of tap target around a 12px bar: 13 services do not fit at 18px. */
+  .coverflow__dash {
+    min-width: 30px;
+  }
+
+  .coverflow__dash::after {
+    width: 12px;
+  }
+
+  .coverflow__dash.is-active::after {
+    width: 28px;
+  }
+
+  .coverflow__nav {
+    gap: 8px;
+  }
+
+  .coverflow__hint {
+    font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coverflow__card,
+  .coverflow__arrow,
+  .coverflow__dash::after {
+    transition: none;
+  }
+
+  .coverflow__title {
     animation: none;
   }
 }

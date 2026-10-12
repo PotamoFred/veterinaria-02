@@ -18,11 +18,19 @@
 /out/
 
 # production
-/build
+# build/ holds repo tooling, so ignore its contents rather than the directory:
+# git will not descend into an excluded directory, which made a bare /build
+# swallow build/*.mjs and break the predev hook on a clean clone.
+/build/*
+!/build/*.mjs
 
 # misc
 .DS_Store
 *.pem
+
+# generated single-file build. Rebuild it with the chain in the README; it is
+# ~3 MB of embedded base64 that would bloat every clone for no benefit.
+/index.html
 
 # debug
 npm-debug.log*

@@ -1,55 +1,9 @@
 "use client";
 
-const testimonials = [
-  {
-    name: "Camila Rodríguez",
-    pet: "Dueña de Luna 🐈",
-    text: "El equipo de Bienestar Animal es increíble. Mi gata llegó muy asustada y la trataron con una ternura que nunca olvidaré.",
-    rating: 5,
-  },
-  {
-    name: "Andrés Morales",
-    pet: "Dueño de Thor 🐕",
-    text: "Llevé a Thor para una cirugía y todo salió perfecto. Las instalaciones son impecables y el seguimiento post-operatorio fue excelente.",
-    rating: 5,
-  },
-  {
-    name: "Valentina Torres",
-    pet: "Dueña de Kiwi 🐇",
-    text: "Por fin una clínica que atiende conejos con el mismo cuidado que a perros y gatos. Totalmente recomendada.",
-    rating: 5,
-  },
-  {
-    name: "Diego Lozano",
-    pet: "Dueño de Max 🐕",
-    text: "El diagnóstico fue rápido y preciso. En menos de 24 horas Max ya estaba recuperándose. Servicio de primera.",
-    rating: 5,
-  },
-  {
-    name: "Sofía Jiménez",
-    pet: "Dueña de Milo 🐈",
-    text: "Me explicaron todo el proceso paso a paso. Se nota que realmente les importa el bienestar de los animales.",
-    rating: 5,
-  },
-  {
-    name: "Carlos Peña",
-    pet: "Dueño de Rocky 🐕",
-    text: "Años llevando a Rocky aquí y nunca una mala experiencia. Son constantes, profesionales y súper amables.",
-    rating: 5,
-  },
-  {
-    name: "Isabela Vargas",
-    pet: "Dueña de Nala 🐈",
-    text: "El servicio de vacunación es rapidísimo. En 15 minutos salimos y Nala estuvo tranquila todo el tiempo.",
-    rating: 5,
-  },
-  {
-    name: "Miguel Ángel Castro",
-    pet: "Dueño de Bravo 🐕",
-    text: "Tienen todos los servicios en un solo lugar. No necesito ir a otro sitio. Atención al cliente impecable.",
-    rating: 5,
-  },
-];
+import { TESTIMONIOS as testimonials } from "@/content";
+
+// These reviews are invented, names and all. See src/content.ts.
+
 
 function StarIcon() {
   return (
@@ -84,7 +38,7 @@ function TestimonialCard({ item }: { item: typeof testimonials[0] }) {
 
       {/* Quote */}
       <p className="text-[#1B004B]/80 text-sm leading-relaxed flex-1 font-medium">
-        "{item.text}"
+        &ldquo;{item.text}&rdquo;
       </p>
 
       {/* Author */}
@@ -109,7 +63,10 @@ export default function TestimonialsCarousel() {
   const items = [...testimonials, ...testimonials];
 
   return (
-    <section className="relative w-full pb-20 pt-8 overflow-x-clip bg-[#F6F4FA]">
+    <section
+      id="testimonios"
+      className="relative w-full pb-20 pt-8 overflow-x-clip bg-[#F6F4FA]"
+    >
       {/* Section header */}
       <div className="text-center mb-12 px-4 relative z-10">
         <p className="text-[11px] font-semibold tracking-[0.3em] text-[#4C007D] uppercase mb-3">

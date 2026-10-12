@@ -1,364 +1,356 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type Ref } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-type ServicioNodo = {
-  id: string;
-  titulo: string;
-  src: string;
-  /** 0° = arriba, sentido horario */
-  angle: number;
-};
+// 3D cover flow of the service cards in public/carrusel.
+//
+// Ported from _referencia-carrusel/script.js. The transform maths is kept as
+// it was there -- baseOffset / stepOffset / baseZ / stepZ / rotateAngle per
+// breakpoint, then the same translate / translateZ / rotateY / scale / opacity
+// / brightness per card -- because that geometry is what produces the effect.
+// Only the palette changed, to the clinic's; the original was a black page with
+// white type, which would have sat badly on a light section.
+//
+// The strip is finite, not wrapping: the reference disables the arrows at both
+// ends, and that is the right behaviour for thirteen services you might be
+// looking for.
+type Slide = { file: string; title: string; alt: string };
 
-const SERVICIOS: ServicioNodo[] = [
-  { id: "vacunacion", titulo: "Vacunación y desparasitación", src: "/imagenes-servicios/02.jpg", angle: 0 },
-  { id: "cirugia", titulo: "Cirugía", src: "/imagenes-servicios/03.jpg", angle: 60 },
-  { id: "farmacia", titulo: "Farmacia veterinaria", src: "/imagenes-servicios/04.jpg", angle: 120 },
-  { id: "diagnostico", titulo: "Diagnóstico", src: "/imagenes-servicios/05.jpg", angle: 180 },
-  { id: "laboratorio", titulo: "Laboratorio", src: "/imagenes-servicios/06.jpg", angle: 240 },
-  { id: "consulta", titulo: "Consulta general", src: "/imagenes-servicios/01.jpg", angle: 300 },
+const SLIDES: Slide[] = [
+  {
+    file: "24 H",
+    title: "Hospitalización 24 horas",
+    alt: "Tarjeta de hospitalización 24 horas de Bienestar Animal Ibagué: cuidados, atención y monitoreo constante para su recuperación.",
+  },
+  {
+    file: "Cirugia",
+    title: "Cirugía veterinaria",
+    alt: "Tarjeta de cirugía veterinaria de Bienestar Animal Ibagué: cuidado y precisión en cada procedimiento quirúrgico.",
+  },
+  {
+    file: "Consulta Medica",
+    title: "Consulta médica",
+    alt: "Tarjeta de consulta médica de Bienestar Animal Ibagué: atención general para tu mascota.",
+  },
+  {
+    file: "Dermatologia",
+    title: "Consulta dermatológica",
+    alt: "Tarjeta de consulta dermatológica de Bienestar Animal Ibagué: cuidado de la piel y el pelo para tu mascota.",
+  },
+  {
+    file: "Farmacia",
+    title: "Farmacia veterinaria",
+    alt: "Tarjeta de la farmacia veterinaria de Bienestar Animal Ibagué: tienda de medicamentos y productos para su bienestar.",
+  },
+  {
+    file: "Imagen",
+    title: "Diagnóstico por imagen",
+    alt: "Tarjeta de diagnóstico por imagen de Bienestar Animal Ibagué: tecnología avanzada para diagnósticos rápidos y precisos.",
+  },
+  {
+    file: "Laboratorio",
+    title: "Laboratorio veterinario",
+    alt: "Tarjeta del laboratorio veterinario de Bienestar Animal Ibagué: análisis precisos para un diagnóstico acertado.",
+  },
+  {
+    file: "Odontologia",
+    title: "Consulta odontológica",
+    alt: "Tarjeta de consulta odontológica de Bienestar Animal Ibagué: cuidado dental para tu mascota.",
+  },
+  {
+    file: "Oftalmologia",
+    title: "Consulta oftalmológica",
+    alt: "Tarjeta de consulta oftalmológica de Bienestar Animal Ibagué: cuidado de la vista para tu mascota.",
+  },
+  {
+    file: "Oncologia",
+    title: "Consulta oncológica",
+    alt: "Tarjeta de consulta oncológica de Bienestar Animal Ibagué: esperanza y cuidado especializado contra el cáncer.",
+  },
+  {
+    file: "Ortopedia",
+    title: "Cirugía ortopédica",
+    alt: "Tarjeta de cirugía ortopédica de Bienestar Animal Ibagué: cuidado, precisión y movilidad en cada procedimiento.",
+  },
+  {
+    file: "Oxigenoterapia",
+    title: "Oxigenoterapia",
+    alt: "Tarjeta de oxigenoterapia de Bienestar Animal Ibagué: soporte vital, alivio y recuperación en cada respiración.",
+  },
+  {
+    file: "Vacunacion",
+    title: "Vacunación y desparasitación",
+    alt: "Tarjeta de vacunación y desparasitación de Bienestar Animal Ibagué: protección y prevención para su bienestar.",
+  },
 ];
 
-type Line = {
-  id: string;
-  x1: number;
-  y1: number;
-  x2: number;
-  y2: number;
+// encodeURI, not the raw name: one folder entry is "24 H" and a browser would
+// otherwise request a URL with an unencoded space in it.
+const src = (file: string) => encodeURI(`/carrusel/${file}.webp`);
+
+// Same breakpoints and numbers as getTransformMetrics() in the reference.
+type Metrics = {
+  baseOffset: number;
+  stepOffset: number;
+  baseZ: number;
+  stepZ: number;
+  rotateAngle: number;
 };
 
-function nodePosition(angle: number) {
-  const rad = (angle * Math.PI) / 180;
-  return {
-    left: `${50 + Math.sin(rad) * 38}%`,
-    top: `${50 - Math.cos(rad) * 36}%`,
-  };
+function metricsFor(width: number): Metrics {
+  if (width <= 600) return { baseOffset: 90, stepOffset: 70, baseZ: -100, stepZ: 50, rotateAngle: 38 };
+  if (width <= 900) return { baseOffset: 120, stepOffset: 95, baseZ: -130, stepZ: 65, rotateAngle: 42 };
+  return { baseOffset: 150, stepOffset: 125, baseZ: -150, stepZ: 75, rotateAngle: 46 };
 }
 
+const DRAG_THRESHOLD = 40;
+const WHEEL_DEBOUNCE_MS = 300;
+
 export default function ServiciosDestacados() {
-  const stageRef = useRef<HTMLDivElement>(null);
-  const hubRef = useRef<HTMLButtonElement>(null);
-  const nodeRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const [lines, setLines] = useState<Line[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [hubActive, setHubActive] = useState(false);
+  const [i, setI] = useState(0);
+  const [width, setWidth] = useState(1400);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
-  const updateLines = useCallback(() => {
-    const stage = stageRef.current;
-    const hub = hubRef.current;
-    if (!stage || !hub) return;
+  const total = SLIDES.length;
+  const m = metricsFor(width);
 
-    const stageBox = stage.getBoundingClientRect();
-    const hubBox = hub.getBoundingClientRect();
-    const x1 = hubBox.left + hubBox.width / 2 - stageBox.left;
-    const y1 = hubBox.top + hubBox.height / 2 - stageBox.top;
+  const goTo = useCallback(
+    (index: number) => setI(Math.min(Math.max(0, index), total - 1)),
+    [total]
+  );
+  const prev = useCallback(() => setI((n) => Math.max(0, n - 1)), []);
+  const next = useCallback(() => setI((n) => Math.min(total - 1, n + 1)), [total]);
 
-    const next: Line[] = SERVICIOS.map((servicio) => {
-      const node = nodeRefs.current[servicio.id];
-      if (!node) {
-        return { id: servicio.id, x1, y1, x2: x1, y2: y1 };
-      }
-      const box = node.getBoundingClientRect();
-      return {
-        id: servicio.id,
-        x1,
-        y1,
-        x2: box.left + box.width / 2 - stageBox.left,
-        y2: box.top + box.height / 2 - stageBox.top,
-      };
-    });
-
-    setLines(next);
+  // Breakpoints drive the transform, so the window width has to be tracked.
+  useEffect(() => {
+    const onResize = () => setWidth(window.innerWidth);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   useEffect(() => {
-    updateLines();
-    const stage = stageRef.current;
-    if (!stage) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") prev();
+      else if (e.key === "ArrowRight") next();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [prev, next]);
 
-    const observer = new ResizeObserver(() => updateLines());
-    observer.observe(stage);
-    window.addEventListener("resize", updateLines);
+  // Drag and wheel, both from the reference. Kept in one effect so the mouseup
+  // listener, which lives on the window, is removed with it.
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
 
-    const images = stage.querySelectorAll("img");
-    images.forEach((img) => {
-      if (!img.complete) img.addEventListener("load", updateLines);
-    });
+    let startX = 0;
+    let dragging = false;
+    let wheelUntil = 0;
+
+    const down = (x: number) => { startX = x; dragging = true; };
+    const up = (x: number) => {
+      if (!dragging) return;
+      dragging = false;
+      const diff = x - startX;
+      if (diff > DRAG_THRESHOLD) prev();
+      else if (diff < -DRAG_THRESHOLD) next();
+    };
+
+    const onDown = (e: MouseEvent) => down(e.clientX);
+    const onUp = (e: MouseEvent) => up(e.clientX);
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length) down(e.touches[0].clientX);
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.changedTouches.length) up(e.changedTouches[0].clientX);
+    };
+    const onWheel = (e: WheelEvent) => {
+      // Shift+wheel and horizontal trackpad swipes mean sideways, which is not
+      // ours to consume.
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+
+      const dir = e.deltaY > 0 ? 1 : -1;
+      const atEnd = dir > 0 ? i >= total - 1 : i <= 0;
+
+      // Release the scroll at either end. A 480px tall element that always
+      // swallows the wheel becomes a trap the visitor has to hunt for to get
+      // past; this way it consumes the scroll only while it can still move.
+      if (atEnd) return;
+
+      // The reference never cancelled the event, which is fine on a page that
+      // does not scroll and broken here: both the carousel and the page moved.
+      e.preventDefault();
+
+      const now = Date.now();
+      if (now < wheelUntil) return;
+      wheelUntil = now + WHEEL_DEBOUNCE_MS;
+      setI((n) => Math.min(Math.max(0, n + dir), total - 1));
+    };
+
+    viewport.addEventListener("mousedown", onDown);
+    window.addEventListener("mouseup", onUp);
+    viewport.addEventListener("touchstart", onTouchStart, { passive: true });
+    viewport.addEventListener("touchend", onTouchEnd, { passive: true });
+    // Not passive: preventing the default is the whole point of this listener.
+    viewport.addEventListener("wheel", onWheel, { passive: false });
 
     return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateLines);
-      images.forEach((img) => img.removeEventListener("load", updateLines));
+      viewport.removeEventListener("mousedown", onDown);
+      window.removeEventListener("mouseup", onUp);
+      viewport.removeEventListener("touchstart", onTouchStart);
+      viewport.removeEventListener("touchend", onTouchEnd);
+      viewport.removeEventListener("wheel", onWheel);
     };
-  }, [updateLines]);
+  }, [i, total, prev, next]);
 
   return (
     <section
       id="servicios"
-      className="relative w-full bg-[#F6F4FA] py-16 sm:py-24 px-4 sm:px-8 overflow-hidden"
+      aria-label="Servicios destacados"
+      className="relative w-full bg-[#F6F4FA] py-20 sm:py-28 px-4 sm:px-8 overflow-x-clip"
     >
-      <style>{cssAnimations}</style>
-
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[#4C007D]/5 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[#FFDDC1]/30 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#1E90E5]/8 rounded-full blur-[160px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        <div className="mb-10 sm:mb-14 text-center sm:text-left">
-          <p className="text-[11px] font-semibold tracking-[0.3em] text-[#4C007D] uppercase mb-3">
-            Servicios Destacados
+      <div className="max-w-6xl mx-auto relative z-10">
+        <div className="max-w-2xl mb-8 sm:mb-12">
+          <p className="text-[11px] font-semibold tracking-[0.3em] text-[#4C007D] uppercase mb-4">
+            Servicios destacados
           </p>
-          <h2 className="text-4xl sm:text-5xl font-black text-[#4C007D] max-w-3xl leading-tight">
+          <h2 className="text-4xl sm:text-5xl font-black text-[#4C007D] leading-tight">
             Todo lo que tu mascota{" "}
             <span className="text-[#1B004B]">necesita</span>
           </h2>
-          <p className="mt-5 text-[#1B004B]/70 text-base sm:text-lg font-medium max-w-2xl leading-relaxed">
-            Un centro de gestión veterinaria completo: elija un servicio para
-            ver cómo se conecta con el flujo de atención.
+          <p className="mt-6 text-[#1B004B]/70 text-base sm:text-lg font-medium leading-relaxed">
+            Pulsa las flechas, arrastra o usa el teclado para recorrer los trece
+            servicios de la clínica.
           </p>
         </div>
 
-        {/* Layout móvil: hub + tarjetas */}
-        <div className="lg:hidden space-y-6">
-          <Hub
-            active={hubActive}
-            onToggle={() => {
-              setHubActive((v) => !v);
-              setActiveId(null);
-            }}
-            floating={false}
-          />
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {SERVICIOS.map((servicio, i) => (
-              <button
-                key={servicio.id}
-                type="button"
-                onClick={() =>
-                  setActiveId((id) => (id === servicio.id ? null : servicio.id))
-                }
-                className={`group relative rounded-3xl overflow-hidden bg-white shadow-lg ring-2 transition-all duration-300 text-left ${
-                  activeId === servicio.id
-                    ? "ring-[#1E90E5] scale-[1.02]"
-                    : "ring-transparent hover:ring-[#1E90E5]/40"
-                }`}
-                style={{ animationDelay: `${i * 0.12}s` }}
-              >
-                <img
-                  src={servicio.src}
-                  alt={servicio.titulo}
-                  className="w-full h-auto block"
-                />
-              </button>
-            ))}
+        <div className="coverflow">
+          <div className="coverflow__viewport" ref={viewportRef}>
+            <div className="coverflow__stage">
+              {SLIDES.map((s, idx) => {
+                const offset = idx - i;
+                const abs = Math.abs(offset);
+                const active = offset === 0;
+
+                // Same arithmetic as update() in the reference.
+                const x = active ? 0 : Math.sign(offset) * (m.baseOffset + (abs - 1) * m.stepOffset);
+                const z = active ? 0 : m.baseZ - (abs - 1) * m.stepZ;
+                const rot = active ? 0 : -Math.sign(offset) * m.rotateAngle;
+                const scale = active ? 1 : Math.max(0.62, 1 - abs * 0.075);
+                const opacity = active ? 1 : Math.max(0, 1 - (abs - 1) * 0.22);
+                const brightness = active ? 1 : Math.max(0.4, 0.9 - abs * 0.12);
+
+                return (
+                  <div
+                    key={s.file}
+                    className={`coverflow__card ${active ? "is-active" : ""}`}
+                    // The standalone build reads this back to drive its own
+                    // vanilla copy of the carousel; there is no React there.
+                    data-title={s.title}
+                    data-index={idx}
+                    style={{
+                      transform: `translateX(${x}px) translateZ(${z}px) rotateY(${rot}deg) scale(${scale})`,
+                      zIndex: 50 - abs,
+                      opacity,
+                      filter: `brightness(${brightness})`,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => goTo(idx)}
+                      tabIndex={active ? 0 : -1}
+                      aria-label={`Ver ${s.title}`}
+                      aria-current={active ? "true" : undefined}
+                      className="coverflow__hit"
+                    >
+                      {/* Plain <img> on purpose. next/image wraps the picture in a span
+                          of its own, which breaks the absolute positioning the
+                          3D transform relies on, and these are already WebP at
+                          the size the card renders at. The gallery's <img>
+                          escapes the lint rule only because it sits inside a
+                          <picture>.
+
+                          Always eager: the cards sit in a 3D-transformed
+                          stage, which the browser's lazy heuristic reads
+                          badly. Measured, it deferred 11 of the 13 and never
+                          fetched them once a card reached the centre, because
+                          changing the loading attribute on an element that
+                          already exists does not re-trigger the request. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={src(s.file)}
+                          alt={active ? s.alt : ""}
+                          width={800}
+                          height={1071}
+                          loading="eager"
+                          decoding="async"
+                          draggable={false}
+                          className="coverflow__img"
+                        />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        {/* Layout desktop: infografía orbital */}
-        <div
-          ref={stageRef}
-          className="relative hidden lg:block mx-auto w-full max-w-[1180px] aspect-square"
-        >
-          <svg
-            className="absolute inset-0 w-full h-full pointer-events-none z-0"
-            aria-hidden="true"
-          >
-            <defs>
-              <linearGradient id="hub-line" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#4DC8FF" />
-                <stop offset="50%" stopColor="#1E90E5" />
-                <stop offset="100%" stopColor="#AEE2D1" />
-              </linearGradient>
-              <filter id="hub-glow" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="3.5" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-            </defs>
-            {lines.map((line) => {
-              const highlighted =
-                hubActive || activeId === null || activeId === line.id;
-              return (
-                <g key={line.id} filter="url(#hub-glow)">
-                  <line
-                    x1={line.x1}
-                    y1={line.y1}
-                    x2={line.x2}
-                    y2={line.y2}
-                    stroke="#1E90E5"
-                    strokeWidth="2"
-                    strokeOpacity={highlighted ? 0.28 : 0.08}
-                    className="transition-opacity duration-300"
-                  />
-                  <line
-                    x1={line.x1}
-                    y1={line.y1}
-                    x2={line.x2}
-                    y2={line.y2}
-                    stroke="url(#hub-line)"
-                    strokeWidth="3.5"
-                    strokeLinecap="round"
-                    strokeDasharray="10 22"
-                    className={highlighted ? "energy-flow" : ""}
-                    opacity={highlighted ? 1 : 0.15}
-                  />
-                  <circle
-                    cx={(line.x1 + line.x2) / 2}
-                    cy={(line.y1 + line.y2) / 2}
-                    r="7"
-                    fill="#FFFFFF"
-                    stroke="#1E90E5"
-                    strokeWidth="2.5"
-                    opacity={highlighted ? 1 : 0.35}
-                  />
-                </g>
-              );
-            })}
-          </svg>
+          {/* Caption of the centred card, with the reference's fade swap. */}
+          <div className="coverflow__caption">
+            <h3 className="coverflow__title" key={i}>
+              {SLIDES[i].title}
+            </h3>
+          </div>
 
-          <Hub
-            ref={hubRef}
-            active={hubActive}
-            onToggle={() => {
-              setHubActive((v) => !v);
-              setActiveId(null);
-            }}
-            floating
-          />
+          <nav className="coverflow__nav" aria-label="Controles del carrusel">
+            <button
+              type="button"
+              onClick={prev}
+              disabled={i === 0}
+              className="coverflow__arrow"
+              aria-label="Servicio anterior"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
 
-          {SERVICIOS.map((servicio, i) => {
-            const pos = nodePosition(servicio.angle);
-            const isActive = activeId === servicio.id;
-            const dimmed = activeId !== null && !isActive && !hubActive;
+            <div className="coverflow__dashes" role="tablist" aria-label="Ir a un servicio">
+              {SLIDES.map((s, idx) => (
+                <button
+                  key={s.file}
+                  type="button"
+                  role="tab"
+                  onClick={() => goTo(idx)}
+                  aria-label={`Ir a ${s.title}`}
+                  aria-selected={idx === i}
+                  className={`coverflow__dash ${idx === i ? "is-active" : ""}`}
+                />
+              ))}
+            </div>
 
-            return (
-              <button
-                key={servicio.id}
-                type="button"
-                ref={(el) => {
-                  nodeRefs.current[servicio.id] = el;
-                }}
-                onClick={() =>
-                  setActiveId((id) => (id === servicio.id ? null : servicio.id))
-                }
-                onMouseEnter={() => setActiveId(servicio.id)}
-                onMouseLeave={() => setActiveId(null)}
-                className="absolute z-10 w-[min(30%,280px)] -translate-x-1/2 -translate-y-1/2 cursor-pointer border-0 bg-transparent p-0"
-                style={{ left: pos.left, top: pos.top }}
-                aria-pressed={isActive}
-              >
-                <span
-                  className={`block node-float rounded-[2rem] overflow-hidden shadow-[0_18px_40px_rgba(30,144,229,0.18)] ring-2 transition-all duration-300 ${
-                    isActive
-                      ? "ring-[#1E90E5] scale-105"
-                      : dimmed
-                        ? "ring-transparent opacity-55"
-                        : "ring-white/70 hover:ring-[#1E90E5]/50 hover:scale-[1.03]"
-                  }`}
-                  style={{ animationDelay: `${i * 0.35}s` }}
-                >
-                  <img
-                    src={servicio.src}
-                    alt={servicio.titulo}
-                    className="w-full h-auto block pointer-events-none select-none"
-                    draggable={false}
-                  />
-                </span>
-              </button>
-            );
-          })}
+            <button
+              type="button"
+              onClick={next}
+              disabled={i === total - 1}
+              className="coverflow__arrow"
+              aria-label="Servicio siguiente"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </nav>
+
+          <p className="coverflow__hint">
+            Arrastra, usa la rueda del ratón o las teclas{" "}
+            <span aria-hidden="true">◀</span> <span aria-hidden="true">▶</span>
+          </p>
         </div>
       </div>
     </section>
   );
 }
-
-function Hub({
-  ref,
-  active,
-  onToggle,
-  floating,
-}: {
-  ref?: Ref<HTMLButtonElement>;
-  active: boolean;
-  onToggle: () => void;
-  floating: boolean;
-}) {
-  return (
-    <button
-      ref={ref}
-      type="button"
-      onClick={onToggle}
-      aria-pressed={active}
-      className={`hub-core relative z-20 mx-auto flex flex-col items-center justify-center text-center cursor-pointer border-0 ${
-        floating
-          ? "absolute left-1/2 top-1/2 w-[min(34%,340px)] aspect-square -translate-x-1/2 -translate-y-1/2"
-          : "w-[min(100%,320px)] aspect-square"
-      }`}
-    >
-      <span
-        className={`absolute inset-[8%] rounded-full bg-[#4DC8FF]/25 blur-2xl ${
-          floating ? "hub-pulse" : ""
-        }`}
-      />
-      <span
-        className={`relative flex h-full w-full flex-col items-center justify-center rounded-full px-6 transition-transform duration-300 ${
-          floating ? "node-float" : ""
-        } ${active ? "scale-105" : "hover:scale-[1.03]"}`}
-        style={{
-          background:
-            "radial-gradient(circle at 50% 32%, #FFFFFF 0%, #E8F6FF 48%, #C5E8FF 100%)",
-          boxShadow:
-            "inset 0 8px 0 rgba(255,255,255,0.65), inset 0 -14px 0 rgba(30,144,229,0.12), 0 0 0 10px rgba(77,200,255,0.18), 0 28px 60px rgba(30,144,229,0.28)",
-        }}
-      >
-        <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 text-[#1E90E5] shadow-md">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0117 8.414V19a2 2 0 01-2 2z" />
-          </svg>
-        </span>
-        <span className="font-black leading-none text-[#1B004B] text-xl sm:text-2xl">
-          CENTRO DE
-        </span>
-        <span className="font-black leading-none mt-1 text-[#1E90E5] text-xl sm:text-2xl">
-          GESTIÓN
-        </span>
-        <span className="font-black leading-none mt-1 text-[#4C007D] text-xl sm:text-2xl">
-          VETERINARIA
-        </span>
-      </span>
-    </button>
-  );
-}
-
-const cssAnimations = `
-  @keyframes node-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
-  @keyframes energy-flow {
-    to { stroke-dashoffset: -64; }
-  }
-  @keyframes hub-pulse {
-    0%, 100% { opacity: 0.55; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.08); }
-  }
-  .node-float {
-    animation: node-float 4.6s ease-in-out infinite;
-    will-change: transform;
-  }
-  .energy-flow {
-    animation: energy-flow 1.15s linear infinite;
-  }
-  .hub-pulse {
-    animation: hub-pulse 3.2s ease-in-out infinite;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .node-float,
-    .energy-flow,
-    .hub-pulse {
-      animation: none;
-    }
-  }
-`;

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The untouched cover flow source this section was ported from. Kept for
+    // reference; it is not part of the build and is never served.
+    "_referencia-carrusel/**",
   ]),
 ]);
 

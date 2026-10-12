@@ -14,22 +14,63 @@ export default function CanvasSequence() {
     const ctx = canvas.getContext("2d", { alpha: false });
     if (!ctx) return;
 
-    const frameCount = 50;
-    const images: HTMLImageElement[] = [];
-
+    // The hero sequence changes between exports, so the exact filenames come
+    // from the manifest written by build/gen-assets.mjs.
     const prefersReducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    for (let i = 1; i <= frameCount; i++) {
-      const img = new Image();
-      const num = i.toString().padStart(3, "0");
-      img.src = `/imagenes/ezgif-frame-${num}.png`;
-      img.onload = () => {
-        if (i === 1) renderFrame(1);
-      };
-      images.push(img);
-    }
+    const isReady = (img?: HTMLImageElement): boolean =>
+      !!img && img.complete && img.naturalWidth > 0;
+
+    const images: HTMLImageElement[] = [];
+
+    const start = async () => {
+      type Frame = { webp: string; small?: string };
+      let sources: Frame[];
+
+      // Decoding costs RAM proportional to pixel count, and a phone only paints
+      // the canvas at ~400 CSS px wide. Small screens take the half-size frames.
+      const wantSmall = window.matchMedia("(max-width: 768px)").matches;
+
+      try {
+        const res = await fetch("/imagenes/frames.json", { cache: "no-store" });
+        const manifest = (await res.json()) as { files?: Frame[] };
+        if (!manifest.files?.length) throw new Error("empty manifest");
+        sources = manifest.files;
+      } catch {
+        // Fallback if the manifest is missing: assume a 0-based run of frames.
+        sources = Array.from({ length: 13 }, (_, i) => {
+          const num = String(i).padStart(3, "0");
+          return {
+            webp: `ezgif-frame-${num}.webp`,
+            small: `ezgif-frame-${num}-sm.webp`,
+          };
+        });
+      }
+
+      sources.forEach((frame, i) => {
+        const img = new Image();
+        const preferred =
+          wantSmall && frame.small ? frame.small : frame.webp;
+        // Fall back to the full-size frame if the mobile variant is refused.
+        img.onerror = () => {
+          if (preferred !== frame.webp && frame.webp) {
+            img.src = `/imagenes/${frame.webp}`;
+          }
+        };
+        img.onload = () => {
+          if (i === 0) renderFrame(1);
+        };
+        img.src = `/imagenes/${preferred}`;
+        images.push(img);
+      });
+
+      updateScroll();
+      play();
+    };
+
+    start();
 
     let currentFrame = 1;
     let targetFrame = 1;
@@ -38,10 +79,16 @@ export default function CanvasSequence() {
 
     const renderFrame = (frameIndex: number) => {
       let index = Math.round(frameIndex) - 1;
-      index = Math.max(0, Math.min(frameCount - 1, index));
+      // Clamp against the frames actually queued, which is not known until the
+      // manifest resolves, hence the guard.
+      index = Math.max(0, Math.min(Math.max(1, images.length) - 1, index));
+
+      // Fall back to the nearest earlier frame that actually decoded, so a
+      // missing or still-loading image never freezes the canvas.
+      while (index > 0 && !isReady(images[index])) index--;
 
       const img = images[index];
-      if (!img || !img.complete || img.naturalWidth === 0) return;
+      if (!isReady(img)) return;
 
       const dpr = window.devicePixelRatio || 1;
       const rect = canvas.getBoundingClientRect();
@@ -80,16 +127,21 @@ export default function CanvasSequence() {
 
     const updateScroll = () => {
       const scrollable = track.offsetHeight - window.innerHeight;
-      const scrolled = -track.getBoundingClientRect().top;
+      const rect = track.getBoundingClientRect();
+      const scrolled = -rect.top;
       let fraction = scrollable > 0 ? scrolled / scrollable : 0;
       fraction = Math.max(0, Math.min(1, fraction));
 
       // Hold the facade, play through the open doors, then hand off to
-      // the next section on ezgif-frame-033.png.
+      // the next section on the last available frame.
+      // doorEnd sits late in the range on purpose: the animation finishes
+      // close to the end of the hero, which is what removes the dead scroll
+      // between the last frame and the next section. playEnd follows shortly
+      // after so the overlay hands off almost immediately.
       const playStart = 0.06;
-      const transitionFrame = 33;
-      const doorEnd = 0.52;
-      const playEnd = 0.82;
+      const transitionFrame = Math.max(1, images.length);
+      const doorEnd = 0.76;
+      const playEnd = 0.81;
 
       let overlayProgress = 0;
 
@@ -115,6 +167,14 @@ export default function CanvasSequence() {
       if (prefersReducedMotion) {
         currentFrame = targetFrame;
       }
+
+      // Park the loop while the hero is far off-screen. Driven from the rect we
+      // already measured instead of an IntersectionObserver, so play/pause
+      // stays in one place and needs no extra listener.
+      const inView =
+        rect.bottom > -200 && rect.top < window.innerHeight + 200;
+      if (inView) play();
+      else pause();
     };
 
     const handleResize = () => {
@@ -135,11 +195,24 @@ export default function CanvasSequence() {
       animationFrameId = requestAnimationFrame(loop);
     };
 
+    // Redrawing 60 times a second while the hero is far off-screen is wasted
+    // work and drains the battery. updateScroll owns play/pause from here on.
+    const play = () => {
+      if (!animationFrameId) {
+        animationFrameId = requestAnimationFrame(loop);
+      }
+    };
+    const pause = () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = 0;
+      }
+    };
+
     window.addEventListener("scroll", updateScroll, { passive: true });
     window.addEventListener("resize", handleResize);
 
     updateScroll();
-    loop();
 
     return () => {
       window.removeEventListener("scroll", updateScroll);
