@@ -1,11 +1,14 @@
 import Image from "next/image";
 import CanvasSequence from "@/components/CanvasSequence";
 import BentoGrid from "@/components/BentoGrid";
+import TestimonialsCarousel from "@/components/TestimonialsCarousel";
+import ServiciosDestacados from "@/components/ServiciosDestacados";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
     <>
-    <main className="bg-black text-white font-sans relative h-[400vh]">
+    <main className="bg-[#1B004B] text-white font-sans relative h-[400vh]">
       {/* Cinematic Scroll Animation */}
       <CanvasSequence />
 
@@ -16,13 +19,13 @@ export default function Home() {
           
           {/* Navbar Container */}
           <div className="pt-6 px-4 sm:px-8 max-w-7xl mx-auto w-full shrink-0">
-            <nav className="flex items-center justify-between bg-zinc-900/50 backdrop-blur-md border border-white/10 rounded-full px-4 sm:px-6 py-3">
+            <nav className="flex items-center justify-between bg-[#1B004B]/50 backdrop-blur-md border border-white/20 rounded-full px-4 sm:px-6 py-3">
               {/* Logo */}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-950 border border-indigo-800 rounded-full flex items-center justify-center shrink-0">
-                  {/* Dummy logo SVG (Medical Cross with Animal shape representation) */}
+                <div className="w-10 h-10 bg-[#4C007D] border border-[#FFDDC1]/30 rounded-full flex items-center justify-center shrink-0">
+                  {/* Dummy logo SVG */}
                   <svg
-                    className="w-5 h-5 text-indigo-300"
+                    className="w-5 h-5 text-[#FFDDC1]"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -40,7 +43,7 @@ export default function Home() {
                   <h1 className="font-bold text-sm tracking-wide leading-tight">
                     BIENESTAR ANIMAL
                   </h1>
-                  <p className="text-[10px] text-violet-400 tracking-widest uppercase">
+                  <p className="text-[10px] text-[#AEE2D1] tracking-widest uppercase">
                     Clínica Veterinaria
                   </p>
                 </div>
@@ -48,22 +51,22 @@ export default function Home() {
 
               {/* Nav Links */}
               <div className="hidden lg:flex items-center gap-8 text-sm font-medium">
-                <a href="#" className="bg-violet-500 text-white px-5 py-2 rounded-full">
+                <a href="#" className="bg-[#4C007D] text-white px-5 py-2 rounded-full shadow-sm hover:bg-[#FFDDC1] hover:text-[#1B004B] transition-colors">
                   Inicio
                 </a>
-                <a href="#" className="hover:text-violet-400 transition-colors">
+                <a href="#" className="hover:text-[#AEE2D1] transition-colors">
                   Servicios
                 </a>
-                <a href="#" className="hover:text-violet-400 transition-colors">
+                <a href="#" className="hover:text-[#AEE2D1] transition-colors">
                   Nosotros
                 </a>
-                <a href="#" className="hover:text-violet-400 transition-colors">
+                <a href="#" className="hover:text-[#AEE2D1] transition-colors">
                   Contacto
                 </a>
               </div>
 
               {/* CTA Button */}
-              <button className="hidden md:flex items-center gap-2 border border-white/30 hover:bg-white/10 transition-colors px-5 py-2 rounded-full text-sm font-medium">
+              <button className="hidden md:flex items-center gap-2 border border-white/30 hover:bg-[#AEE2D1] hover:text-[#1B004B] hover:border-[#AEE2D1] transition-all px-5 py-2 rounded-full text-sm font-medium">
                 <svg
                   className="w-4 h-4"
                   fill="none"
@@ -106,27 +109,27 @@ export default function Home() {
             <div className="max-w-2xl">
               {/* Eyebrow */}
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-8 sm:w-12 h-[2px] bg-violet-500"></div>
-                <p className="text-xs sm:text-sm font-semibold tracking-[0.2em] text-gray-300 uppercase">
+                <div className="w-8 sm:w-12 h-[3px] bg-[#AEE2D1] shadow-lg"></div>
+                <p className="text-xs sm:text-sm font-bold tracking-[0.2em] text-[#FFDDC1] uppercase [text-shadow:_0_2px_10px_rgb(27_0_75_/_100%)]">
                   Tu mascota, nuestra prioridad
                 </p>
               </div>
 
               {/* Headline */}
               <h2 className="text-5xl sm:text-7xl font-black leading-none mb-6 tracking-tight">
-                <span className="block text-white mb-2">BIENESTAR</span>
-                <span className="block text-violet-500">ANIMAL</span>
+                <span className="block text-white mb-2 [text-shadow:_0_4px_30px_rgb(27_0_75_/_100%)]">BIENESTAR</span>
+                <span className="block text-[#AEE2D1] [text-shadow:_0_4px_30px_rgb(27_0_75_/_100%)]">ANIMAL</span>
               </h2>
 
               {/* Subtitle */}
-              <p className="text-gray-300 text-base sm:text-xl mb-10 leading-relaxed max-w-lg">
+              <p className="text-white font-medium text-base sm:text-xl mb-10 leading-relaxed max-w-lg [text-shadow:_0_2px_15px_rgb(27_0_75_/_100%)]">
                 Brindamos cuidado y salud integral a tus mascotas con un equipo
                 profesional, instalaciones adecuadas y un trato lleno de amor.
               </p>
 
               {/* Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 mb-16 sm:mb-24">
-                <button className="flex items-center justify-center gap-3 bg-violet-500 hover:bg-violet-600 text-white px-8 py-4 rounded-full font-semibold transition-colors">
+                <button className="flex items-center justify-center gap-3 bg-[#4C007D] hover:bg-[#FFDDC1] hover:text-[#1B004B] text-white px-8 py-4 rounded-full font-semibold transition-colors shadow-md">
                   <svg
                     className="w-5 h-5"
                     fill="none"
@@ -157,7 +160,7 @@ export default function Home() {
                     />
                   </svg>
                 </button>
-                <button className="flex items-center justify-center gap-3 border border-white/40 hover:bg-white/10 text-white px-8 py-4 rounded-full font-semibold transition-colors bg-transparent">
+                <button className="flex items-center justify-center gap-3 border border-white/40 hover:bg-white/10 hover:text-[#AEE2D1] text-white px-8 py-4 rounded-full font-semibold transition-colors bg-transparent">
                   Conocer servicios
                   <svg
                     className="w-5 h-5"
@@ -181,7 +184,7 @@ export default function Home() {
                 {/* Facebook */}
                 <a
                   href="#"
-                  className="text-white hover:text-violet-400 transition-colors bg-white/10 p-2.5 rounded-full"
+                  className="text-white hover:text-[#FFDDC1] transition-colors bg-white/10 p-2.5 rounded-full"
                 >
                   <svg
                     className="w-5 h-5"
@@ -195,7 +198,7 @@ export default function Home() {
                 {/* Instagram */}
                 <a
                   href="#"
-                  className="text-white hover:text-violet-400 transition-colors bg-white/10 p-2.5 rounded-full"
+                  className="text-white hover:text-[#FFDDC1] transition-colors bg-white/10 p-2.5 rounded-full"
                 >
                   <svg
                     className="w-5 h-5"
@@ -209,7 +212,7 @@ export default function Home() {
                 {/* YouTube */}
                 <a
                   href="#"
-                  className="text-white hover:text-violet-400 transition-colors bg-white/10 p-2.5 rounded-full"
+                  className="text-white hover:text-[#FFDDC1] transition-colors bg-white/10 p-2.5 rounded-full"
                 >
                   <svg
                     className="w-5 h-5"
@@ -226,8 +229,14 @@ export default function Home() {
           
         </div>
       </div>
+
+      {/* Seamless transition gradient: Fades the entire hero section into the light background of the next section */}
+      <div className="absolute bottom-0 left-0 w-full h-[120vh] bg-gradient-to-b from-transparent via-[#F6F4FA]/80 to-[#F6F4FA] pointer-events-none z-20" />
     </main>
+    <TestimonialsCarousel />
     <BentoGrid />
+    <ServiciosDestacados />
+    <Footer />
     </>
   );
 }

@@ -130,17 +130,16 @@ export default function CanvasSequence() {
 
   return (
     <div className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none">
-      <div className="sticky top-0 w-full h-[100dvh] overflow-hidden bg-black">
+      <div className="sticky top-0 w-full h-[100dvh] overflow-hidden bg-[#1B004B]">
         <canvas
           ref={canvasRef}
           className="w-full h-full block"
         />
-        {/* Left-to-right dark gradient: darkens left side for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent pointer-events-none" />
-        {/* Top vignette: blends navbar into the image */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent pointer-events-none" />
-        {/* Bottom vignette */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+        {/* Lighter left-to-right gradient to let the image show more while still keeping text readable */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1B004B]/60 via-[#1B004B]/10 to-transparent pointer-events-none" />
+        
+        {/* Subtle top vignette for the navbar */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1B004B]/20 via-transparent to-transparent pointer-events-none" />
       </div>
     </div>
   );
