@@ -39,13 +39,15 @@ export const CLINICA = {
 } as const;
 
 /**
- *RRSS de la clínica. Vacío = los iconos no se dibujan.
+ * RRSS de la clínica. Solo se dibujan las que tengan URL: un ancla a "#" parece
+ * un enlace y no lleva a ninguna parte.
  * Rellenar con las URLs completas, por ejemplo "https://instagram.com/miClinica".
  */
 export const REDES = {
-  facebook: "",
-  instagram: "",
-  youtube: "",
+  facebook:
+    "https://www.facebook.com/BienestarAnimalIbagueclinicaVeterinaria?locale=es_LA",
+  instagram: "https://www.instagram.com/bienestaranimalibague/?hl=es-la",
+  tiktok: "https://www.tiktok.com/@bienestar.animal85",
 } as const;
 
 /** Rutas de las políticas legales. Vacío = el enlace no se dibuja. */
