@@ -19,10 +19,54 @@
   }
 }
 
+:root {
+  --hero-progress: 0;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.hero-copy {
+  opacity: calc(1 - min(1, max(0, var(--hero-progress) / 0.38)));
+  transform: translateY(calc(var(--hero-progress) * -16px));
+  will-change: opacity, transform;
+}
+
+.hero-nav {
+  opacity: calc(1 - min(1, max(0, (var(--hero-progress) - 0.06) / 0.42)));
+  will-change: opacity;
+}
+
+.hero-image-scrim {
+  background: linear-gradient(
+    to right,
+    rgb(27 0 75 / 0.6),
+    rgb(27 0 75 / 0.1),
+    transparent
+  );
+  opacity: calc(1 - min(1, max(0, var(--hero-progress) / 0.4)));
+}
+
+.hero-nav-vignette {
+  background: linear-gradient(
+    to bottom,
+    rgb(27 0 75 / 0.2),
+    transparent 40%
+  );
+  opacity: calc(1 - min(1, max(0, var(--hero-progress) / 0.4)));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy,
+  .hero-nav,
+  .hero-image-scrim,
+  .hero-nav-vignette {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ─── Infinite marquee animation ─── */

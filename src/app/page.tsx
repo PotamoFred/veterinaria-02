@@ -8,17 +8,17 @@ import Footer from "@/components/Footer";
 export default function Home() {
   return (
     <>
-    <main className="bg-[#1B004B] text-white font-sans relative h-[400vh]">
+    <main className="bg-[#1B004B] text-white font-sans relative h-[480vh]">
       {/* Cinematic Scroll Animation */}
       <CanvasSequence />
 
       {/* Sticky container for original content to stay pinned during scroll */}
       <div className="sticky top-0 h-[100dvh] w-full flex flex-col z-10 pointer-events-none">
         {/* Reactivate pointer events for interactive elements */}
-        <div className="pointer-events-auto w-full h-full flex flex-col relative overflow-y-auto overflow-x-hidden">
+        <div className="pointer-events-auto w-full h-full flex flex-col relative overflow-x-hidden">
           
           {/* Navbar Container */}
-          <div className="pt-6 px-4 sm:px-8 max-w-7xl mx-auto w-full shrink-0">
+          <div className="hero-nav pt-6 px-4 sm:px-8 max-w-7xl mx-auto w-full shrink-0">
             <nav className="flex items-center justify-between bg-[#1B004B]/50 backdrop-blur-md border border-white/20 rounded-full px-4 sm:px-6 py-3">
               {/* Logo */}
               <div className="flex items-center gap-3">
@@ -105,7 +105,7 @@ export default function Home() {
           </div>
 
           {/* Hero Content */}
-          <div className="max-w-7xl mx-auto px-6 sm:px-12 pt-20 sm:pt-32 pb-32 flex flex-col justify-center grow w-full">
+          <div className="hero-copy max-w-7xl mx-auto px-6 sm:px-12 pt-20 sm:pt-32 pb-32 flex flex-col justify-center grow w-full">
             <div className="max-w-2xl">
               {/* Eyebrow */}
               <div className="flex items-center gap-4 mb-6">
@@ -230,8 +230,8 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Seamless transition gradient: Fades the entire hero section into the light background of the next section */}
-      <div className="absolute bottom-0 left-0 w-full h-[120vh] bg-gradient-to-b from-transparent via-[#F6F4FA]/80 to-[#F6F4FA] pointer-events-none z-20" />
+      {/* Short blend after the waiting room is already on screen */}
+      <div className="absolute bottom-0 left-0 w-full h-[28vh] bg-gradient-to-b from-transparent to-[#F6F4FA] pointer-events-none z-20" />
     </main>
     <TestimonialsCarousel />
     <BentoGrid />
