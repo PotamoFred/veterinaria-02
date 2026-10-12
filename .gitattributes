@@ -1,0 +1,14 @@
+# Normalise line endings in the repository and check them out as LF everywhere.
+#
+# Without this, git on Windows rewrites every text file to CRLF on checkout, and
+# the same commit looks different depending on who clones it. The WebP and JPG
+# assets are binary and must never be touched.
+* text=auto eol=lf
+
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.webp binary
+*.ico binary
+*.woff2 binary
+*.woff binary
