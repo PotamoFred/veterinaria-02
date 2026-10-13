@@ -1,0 +1,4 @@
+User-Agent: *
+Allow: /
+
+Sitemap: https://potamofred.github.io/veterinaria-02/sitemap.xml
