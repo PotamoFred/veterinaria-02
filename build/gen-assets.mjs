@@ -14,23 +14,30 @@ import path from "node:path";
 import sharp from "sharp";
 
 const publicDir = path.resolve("public");
+// Originals live outside public/ on purpose. Anything in public/ is copied
+// verbatim into the static export, and 13 authored JPGs of the cover flow are
+// 31.7 MB of weight the site never requests. See README.
+const sourcesDir = path.resolve("fuentes");
 
 function webpName(file) {
   return file.replace(/\.(png|jpe?g)$/i, ".webp");
 }
 
+// Reads the originals from fuentes/<dir>, writes the WebP into public/<dir>.
 async function convertDir(dir, filter, quality, width) {
-  const abs = path.join(publicDir, dir);
-  if (!fs.existsSync(abs)) return { converted: 0, reused: 0, from: 0, to: 0 };
+  const srcDir = path.join(sourcesDir, dir);
+  const outDir = path.join(publicDir, dir);
+  if (!fs.existsSync(srcDir)) return { converted: 0, reused: 0, from: 0, to: 0 };
+  fs.mkdirSync(outDir, { recursive: true });
 
   let converted = 0;
   let reused = 0;
   let from = 0;
   let to = 0;
 
-  for (const file of fs.readdirSync(abs).filter(filter).sort()) {
-    const src = path.join(abs, file);
-    const dest = path.join(abs, webpName(file));
+  for (const file of fs.readdirSync(srcDir).filter(filter).sort()) {
+    const src = path.join(srcDir, file);
+    const dest = path.join(outDir, webpName(file));
     const stat = fs.statSync(src);
     from += stat.size;
 
@@ -72,6 +79,21 @@ if (!frames.length) {
 const SMALL_WIDTH = 900;
 let smallMade = 0;
 let smallReused = 0;
+let smallFixed = 0;
+
+// A variant counts as up to date only if it is also the right SIZE. The mtime
+// check alone cannot see a file that was written at the wrong dimensions, and
+// one was: ezgif-frame-012-sm.webp sat in the repo at 1920x1080, which made a
+// phone decode a 8.3 MB bitmap per frame for a canvas 375px wide. Its mtime was
+// newer than its source, so nothing ever regenerated it.
+async function wrongSize(file, expectedWidth) {
+  try {
+    const m = await sharp(file).metadata();
+    return !!expectedWidth && m.width > expectedWidth;
+  } catch {
+    return true; // unreadable: regenerate rather than ship a broken file
+  }
+}
 
 const start = Number(frames[0].match(/(\d+)/)[1]);
 const bytes = frames.reduce((s, f) => s + fs.statSync(path.join(framesDir, f)).size, 0);
@@ -82,15 +104,17 @@ for (const webp of frames) {
   const smallName = webp.replace(/\.webp$/i, "-sm.webp");
   const smallPath = path.join(framesDir, smallName);
 
-  if (
-    !fs.existsSync(smallPath) ||
-    fs.statSync(smallPath).mtimeMs < fs.statSync(src).mtimeMs
-  ) {
+  const exists = fs.existsSync(smallPath);
+  const stale = exists && fs.statSync(smallPath).mtimeMs < fs.statSync(src).mtimeMs;
+  const oversize = exists && (await wrongSize(smallPath, SMALL_WIDTH));
+
+  if (!exists || stale || oversize) {
     await sharp(src)
       .resize({ width: SMALL_WIDTH, withoutEnlargement: true })
       .webp({ quality: 72 })
       .toFile(smallPath);
     smallMade++;
+    if (oversize && !stale) smallFixed++;
   } else {
     smallReused++;
   }

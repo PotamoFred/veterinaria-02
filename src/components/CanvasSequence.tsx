@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { asset } from "@/lib/urls";
 
 export default function CanvasSequence() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -34,7 +35,7 @@ export default function CanvasSequence() {
       const wantSmall = window.matchMedia("(max-width: 768px)").matches;
 
       try {
-        const res = await fetch("/imagenes/frames.json", { cache: "no-store" });
+        const res = await fetch(asset("imagenes/frames.json"), { cache: "no-store" });
         const manifest = (await res.json()) as { files?: Frame[] };
         if (!manifest.files?.length) throw new Error("empty manifest");
         sources = manifest.files;
@@ -56,13 +57,13 @@ export default function CanvasSequence() {
         // Fall back to the full-size frame if the mobile variant is refused.
         img.onerror = () => {
           if (preferred !== frame.webp && frame.webp) {
-            img.src = `/imagenes/${frame.webp}`;
+            img.src = asset(`imagenes/${frame.webp}`);
           }
         };
         img.onload = () => {
           if (i === 0) renderFrame(1);
         };
-        img.src = `/imagenes/${preferred}`;
+        img.src = asset(`imagenes/${preferred}`);
         images.push(img);
       });
 

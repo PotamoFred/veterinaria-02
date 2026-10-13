@@ -128,12 +128,52 @@ El frame 000 mide 2867x1600 mientras los demás son 1920x1080. No rompe nada
 porque el canvas pinta con `object-cover`, pero ocupa el doble de RAM
 decodificada que los otros.
 
-## Antes de publicar
+## Despliegue
+
+Hay dos destinos y cada uno tiene su build.
+
+**GitHub Pages** es lo que hace `.github/workflows/deploy.yml`: exporta el sitio
+estático a `out/` y lo sube. Corre en cada push a `main`.
+
+**Vercel** (o cualquier host con Node) usa el `next start` normal.
+
+Las diferencias viven en variables, no en el código:
+
+| Variable | GitHub Pages | Vercel |
+| --- | --- | --- |
+| `NEXT_OUTPUT` | `export` | (vacío) |
+| `NEXT_PUBLIC_BASE_PATH` | `/<repo>` | (vacío) |
+| `NEXT_PUBLIC_SITE_URL` | `https://<user>.github.io` | el dominio real |
+
+`NEXT_PUBLIC_BASE_PATH` es la única fuente: la leen `next.config.ts`, el
+metadata y `src/lib/urls.ts`. Derivar el subdirectorio en dos sitios a la vez
+es lo que dejó el `og:image` apuntando al dominio sin la carpeta.
+
+Ojo: `next.config.ts` no reescribe un `<img src="/imagenes2/1.webp">` escrito a
+mano. Solo lo que Next resuelve por su cuenta lleva el prefijo. Para eso está
+`asset()` en `src/lib/urls.ts`; usarla en todas las rutas de imágenes.
+
+### Fuentes y `public/`
+
+`public/` contiene **solo lo que sirve el sitio**. Los originales van en
+`fuentes/`, porque todo lo que hay en `public/` se copia tal cual al export
+estático: los 13 JPG del cover flow son 31.7 MB que nadie descarga, y sin esta
+separación el `out/` pesa 35 MB en vez de 3.7.
+
+```
+fuentes/carrusel/*.jpg   originales, 31.7 MB, solo para regenerar
+public/carrusel/*.webp   lo que carga la página, 0.57 MB
+```
+
+Para cambiar la calidad o el tamaño, deja el JPG en `fuentes/carrusel/` y corre
+`npm run frames`.
+
+### Antes de publicar
 
 - **Los nombres de `Equipo.tsx` son ficticios** (Dra. Camila Restrepo, Dr. Andrés
   Lozano, Dra. Valentina Torres, Diego Marley). Son personas reales que no
   existen en una web de una clínica real: o se reemplazan por el equipo de verdad
-  o se quita la sección.
+  o se quita la sección. Están en `src/content.ts`.
 - Los ocho testimonios de `TestimonialsCarousel.tsx` también son inventados, con
   nombre y puntuación. En Colombia eso es publicidad engañosa, y Google penaliza
   las reseñas marcadas como `schema.org/Review` que no sean reales. Hoy no se
@@ -143,7 +183,11 @@ decodificada que los otros.
   sigue siendo de ejemplo.
 - La URL canónica está en `SITE_URL`, en `src/app/layout.tsx`.
 - Los enlaces del pie a Política de privacidad, Términos, Aviso legal y Cookies
-  apuntan a `#`.
+  no se dibujan mientras no tengan ruta: están en `LEGAL` dentro de
+  `src/content.ts`. En Colombia la de privacidad no es opcional.
+
+En GitHub Pages hay que activar **Settings → Pages → Source: GitHub Actions**
+una sola vez, si no el workflow sube el artefacto pero no hay sitio.
 
 ## Notas sobre las imágenes
 
@@ -163,5 +207,5 @@ La numeración de las carpetas es inconsistente (`01.jpg`, `2.jpg`, ...), por es
 el componente ordena por número extraído del nombre en vez de por orden
 alfabético.
 
-`public/imagenes4/` ya no lo usa ninguna sección: era el flyer del catálogo que
-estaba antes del cover flow. Son 3.19 MB sin referenciar.
+Los originales de estas carpetas están en `fuentes/`, no en `public/`: ver
+"Fuentes y `public/`" más arriba.

@@ -90,9 +90,11 @@ export default function Footer() {
                 </svg>
               </div>
               <div>
-                <h4 className="font-black text-base sm:text-lg tracking-wide leading-tight">
+                {/* h2, not h4: this is the footer's heading and the page has no h3 before
+                    it, so an h4 skipped a level for screen readers. */}
+                <h2 className="font-black text-base sm:text-lg tracking-wide leading-tight">
                   BIENESTAR ANIMAL
-                </h4>
+                </h2>
                 <p className="text-[10px] sm:text-xs text-[#AEE2D1] tracking-widest uppercase">
                   Clínica Veterinaria
                 </p>

@@ -1,18 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { asset } from "@/lib/urls";
 
 // Sorted numerically rather than alphabetically: the folder mixes "01.webp"
 // with "2.webp", so a plain sort is only accidentally right here. Dropping a JPG
-// or PNG into public/imagenes2 or public/imagenes3 makes build/gen-assets.mjs
-// produce the .webp siblings.
+// or PNG into fuentes/imagenes2 or fuentes/imagenes3 makes build/gen-assets.mjs
+// produce the .webp siblings in public/.
 const slideNumber = (src: string) => {
   const m = src.match(/(\d+)/);
   return m ? Number(m[1]) : 0;
 };
 
 // Two art-directed sets of the same five designs. Wide below is the 4:1 banner
-// (2064x512); narrow below is the 4:5 portrait (928x1152). The portrait exists
+// (2064x512); narrow below is the 4:5 portrait (820x1018). The portrait exists
 // because a 4:1 banner is only 85px tall in a 390px viewport, which reads as a
 // stripe rather than a slide; the portrait fills the same box at 426px.
 //
@@ -20,33 +21,35 @@ const slideNumber = (src: string) => {
 // has 1), so the pairing is spelled out rather than derived.
 const SLIDES = [
   {
-    wide: "/imagenes3/01.webp",
-    narrow: "/imagenes2/1.webp",
+    wide: "imagenes3/01.webp",
+    narrow: "imagenes2/1.webp",
     alt: "Consulta médica en Bienestar Animal Ibagué: lunes a viernes de 8:00 a. m. a 9:00 p. m. en $49.000, sábados de 8:00 a. m. a 6:00 p. m. en $49.000, y domingos y festivos de 9:00 a. m. a 6:00 p. m. en $67.000",
   },
   {
-    wide: "/imagenes3/2.webp",
-    narrow: "/imagenes2/2.webp",
+    wide: "imagenes3/2.webp",
+    narrow: "imagenes2/2.webp",
     alt: "Jornadas de esterilización de felinos mestizos todos los viernes, con ayuno de 8 horas: gato macho $57.000 y gato hembra $60.000, medicamentos incluidos y retiro de puntos sin costo",
   },
   {
-    wide: "/imagenes3/3.webp",
-    narrow: "/imagenes2/3.webp",
+    wide: "imagenes3/3.webp",
+    narrow: "imagenes2/3.webp",
     alt: "Jornada especial de esterilización canina para perros mestizos según peso: de 0 a 5 kg $65.000, de 6 a 10 kg $75.000, de 11 a 15 kg $80.000 y de 16 a 20 kg $85.000",
   },
   {
-    wide: "/imagenes3/4.webp",
-    narrow: "/imagenes2/4.webp",
+    wide: "imagenes3/4.webp",
+    narrow: "imagenes2/4.webp",
     alt: "Jornadas de esterilización para perros y gatos mestizos todos los viernes: felinos desde $57.000 y caninos de $65.000 a $85.000 según peso. A los caninos se les realiza cuadro hemático por recomendación médica y el retiro de puntos es sin costo",
   },
   {
-    wide: "/imagenes3/5.webp",
-    narrow: "/imagenes2/5.webp",
+    wide: "imagenes3/5.webp",
+    narrow: "imagenes2/5.webp",
     alt: "Nuestra historia: fundación de Bienestar Animal en 2011, evolución a centro médico veterinario en 2020, consolidación como clínica en 2022 y en la actualidad servicios de dermatología, oftalmología, odontología, oncología, cirugía y hospitalización 24 horas",
   },
 ]
   .sort((a, b) => slideNumber(a.wide) - slideNumber(b.wide))
-  .map((s) => ({ src: s.wide, srcSmall: s.narrow, alt: s.alt }));
+  // Routed through the asset helper so the base path reaches them: Next applies
+  // basePath to what it resolves, not to a literal string in <img src>.
+  .map((s) => ({ src: asset(s.wide), srcSmall: asset(s.narrow), alt: s.alt }));
 
 const AUTO_MS = 5200;
 

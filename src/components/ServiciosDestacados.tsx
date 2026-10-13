@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { assetEncoded } from "@/lib/urls";
 
 // 3D cover flow of the service cards in public/carrusel.
 //
@@ -84,9 +85,9 @@ const SLIDES: Slide[] = [
   },
 ];
 
-// encodeURI, not the raw name: one folder entry is "24 H" and a browser would
-// otherwise request a URL with an unencoded space in it.
-const src = (file: string) => encodeURI(`/carrusel/${file}.webp`);
+// Route through the asset helper: a literal "/carrusel/..." is not given the
+// base path by Next and 404s when the site is served from a subdirectory.
+const src = (file: string) => assetEncoded(`carrusel/${file}.webp`);
 
 // Same breakpoints and numbers as getTransformMetrics() in the reference.
 type Metrics = {

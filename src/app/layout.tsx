@@ -20,6 +20,11 @@ const geistMono = Geist_Mono({
 // Next resolves, so a wrong value here is wrong everywhere.
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://bienestaranimal.vercel.app";
+
+// GitHub Pages serves from a subdirectory, so every asset URL has to carry the
+// repository name. Empty on a normal host; the Pages workflow sets it.
+const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+
 const TITLE = "Bienestar Animal | Clínica Veterinaria";
 const DESCRIPTION =
   "Clínica veterinaria en Ibagué, Tolima. Brindamos cuidado y salud integral a tus mascotas con un equipo profesional y un trato lleno de amor.";
@@ -35,6 +40,9 @@ export const metadata: Metadata = {
   },
   description: DESCRIPTION,
   applicationName: "Bienestar Animal",
+  // Without this there is no <link rel="canonical"> at all, and the og:url has
+  // nowhere to agree with.
+  alternates: { canonical: `${SITE_URL}${BASE_PATH}/` },
   keywords: [
     "clínica veterinaria",
     "veterinario Ibagué",
@@ -51,15 +59,29 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_CO",
-    url: SITE_URL,
+    // The bare domain on Pages, where the site lives under /<repo>/. The
+    // canonical link carries the subdirectory; og:url has to agree with it or
+    // the two contradict each other.
+    url: `${SITE_URL}${BASE_PATH}/`,
     siteName: "Bienestar Animal",
     title: TITLE,
     description: DESCRIPTION,
+    // Without this the card is a "large image" with no image: WhatsApp and
+    // LinkedIn render an empty grey rectangle.
+    images: [
+      {
+        url: `${SITE_URL}${BASE_PATH}/og.png`,
+        width: 1200,
+        height: 630,
+        alt: "Bienestar Animal, clínica veterinaria en Ibagué, Tolima",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
+    images: [`${SITE_URL}${BASE_PATH}/og.png`],
   },
   robots: {
     index: true,
